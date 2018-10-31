@@ -1,0 +1,4 @@
+﻿cl : Command line warning D9025: overriding '/D_CRT_NONSTDC_NO_WARNINGS' with '/U_CRT_NONSTDC_NO_WARNINGS'
+  Source.cpp
+c:\users\ahngu\source\repos\vcs_v2\vcs_v2\source.cpp(108): warning C4244: 'initializing': conversion from 'uintmax_t' to 'int', possible loss of data
+  VCS_v2.vcxproj -> C:\Users\ahngu\source\repos\VCS_v2\Debug\VCS_v2.exe
