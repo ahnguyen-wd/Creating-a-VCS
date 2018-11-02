@@ -336,11 +336,11 @@ void check_out(string source, string target, int maniVersion) {
 			originalName.pop_back();
 
 			if(pathCheck.back() == '`') {
-				fileName = p.path().parent
 				for (auto & p : fs::directory_iterator(pathCheck) {
 					for(int i = 0; i < artName.size(); i++) {
 						if(p.path().filename().string() == artName[i]) {
-							fs::copy
+							filePath = p.path().parent_path() + "\\" + originalName;
+							fs::copy(p.path(), filePath);
 						}
 					}
 				}
