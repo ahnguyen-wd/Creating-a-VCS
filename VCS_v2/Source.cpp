@@ -29,6 +29,13 @@ string datetime()
 	return std::string(buffer);
 }
 
+//Function to check if file is empty
+//Argument: ifstream file
+bool is_empty(ifstream& pFile)
+{
+    return pFile.peek() == ifstream::traits_type::eof();
+}
+
 //Regular expression to check if file is in artID and manifestfile format
 //This is used to check folders
 regex artifactID("[0-9]+-L[0-9]+.[a-zA-Z]*");
@@ -46,6 +53,7 @@ void vcs_out(string, ofstream&);
 //To get the ASCII byte, cast the char into int: int(<char>)
 string artIdGenerator(string, string, int);
 
+//Function declartions
 void create_repo(string, string, string);
 void check_in(string, string, string);
 void check_out(string, string, string);
@@ -119,6 +127,7 @@ void vcs(string target, ofstream& manfile) {
 	}
 }
 
+//Function used to create repo or check in
 void vcs_out(string target, ofstream& manfile) {
 	string temp = "";
 	int fileSize = 0;
@@ -145,7 +154,7 @@ void vcs_out(string target, ofstream& manfile) {
 					//Creating the artifact ID to rename the file
 					int fileSize = fs::file_size(p);
 					string artId = artIdGenerator(temp, p.path().filename().string(), fileSize);
-					manfile << "Filepath: " << p.path().string() << endl << "ArtID: " << artId << endl;
+					manfile << "Filepath: " << endl << p.path().string() << endl << "ArtID: " << endl << artId << endl;
 
 					//Creating the directory and moving the file within
 					fs::create_directory(fileName);
@@ -156,6 +165,7 @@ void vcs_out(string target, ofstream& manfile) {
 	}
 }
 
+//Generate artifical ID
 string artIdGenerator(string sourceFilePath, string fileName, int fileSize) {
 	//Initializing variables
 	char c;
@@ -214,11 +224,13 @@ string artIdGenerator(string sourceFilePath, string fileName, int fileSize) {
 	return artId;
 }
 
+//Function to create repo
 void create_repo(string cmd, string source, string target) {
 	int manVersion = 0;
 
 	fs::copy(source, target, fs::copy_options::recursive | fs::copy_options::skip_existing);
 
+	//Creating manifest file in manData folder
 	if (!fs::is_directory(target + "\\manData") || !fs::exists(target + "\\manData")) { // Check if src folder exists
 		fs::create_directory(target + "\\manData"); // create src folder
 	}
@@ -226,6 +238,7 @@ void create_repo(string cmd, string source, string target) {
 	string path = target + "\\manData\\manifest0.txt";
 	ofstream manfile(path, std::ofstream::out);
 
+	//Writing to manifest file
 	if (manfile.is_open()) {
 		manfile << "**************************************************" << endl;
 		manfile << "Command: " << cmd << " " << source << " " << target << endl;
@@ -235,21 +248,25 @@ void create_repo(string cmd, string source, string target) {
 
 	vcs(target, manfile);
 
+	//Labeling manifest file with command used
 	std::cout << "***********************************\n\n";
 	std::cout << "      R E P O   C R E A T E D      \n\n";
 	std::cout << "      Source: " << source << endl;
 	std::cout << "      Target: " << target << endl << endl;
 	std::cout << "***********************************\n";
 
+	//Time stamping manifest file
 	if(manfile.is_open()) {
 		manfile << endl << "**************************************************" << endl;
 		manfile << "Date and time is: " << datetime() << endl << endl;
 		manfile << "**************************************************" << endl;
 	}
 
+	//Closing manfile
 	manfile.close();
 }
 
+//Function to check in repo (update)
 void check_in(string cmd, string source, string target) {
 	int manVersion = 0;
 
@@ -285,10 +302,73 @@ void check_in(string cmd, string source, string target) {
 	manfile.close();
 }
 
-void check_out(string, string) {
+void check_out(string source, string target, int maniVersion) {
+	fs::copy(source, target, fs::copy_options::recursive | fs::copy_options::skip_existing);
 
+	string manPath = source + "\\manData\\manifest" + maniVersion + ".txt";
+	ifstream manFile(manPath);
+
+	vector<string> artName;
+	string line = "";
+	string artID = "";
+	string pathCheck = "";
+	string originalName = "";
+	string found;
+	string str;
+
+	//Adding all artID to vector.
+	if(!is_empty(manFile)) {
+		while(getline(manFile, line)) {
+			if(line == "ArtID: ") {
+				getline(manfile, line);
+				artName.push_back(line);
+			}
+		}
+	}
+
+	for (auto & p : fs::directory_iterator(target)) {
+		temp = p.path().string();
+
+		if (fs::is_directory(p)) {
+			pathCheck = temp;
+			str = pathCheck.find_last_of("/\\");
+			originalName = pathCheck.substr(str+1); 
+			originalName.pop_back();
+
+			if(pathCheck.back() == '`') {
+				fileName = p.path().parent
+				for (auto & p : fs::directory_iterator(pathCheck) {
+					for(int i = 0; i < artName.size(); i++) {
+						if(p.path().filename().string() == artName[i]) {
+							fs::copy
+						}
+					}
+				}
+			}
+		}
+		else if (fs::is_regular_file(p)) {
+			if (!regex_match(p.path().filename().string(), manifestFile)) {
+				if (!regex_match(p.path().filename().string(), artifactID)) {
+					fs::current_path(target);
+					string fileName = p.path().filename().string() + "-";
+
+					//Creating the artifact ID to rename the file
+					int fileSize = fs::file_size(p);
+					string artId = artIdGenerator(temp, p.path().filename().string(), fileSize);
+					manfile << "Filepath: " << endl << p.path().string() << endl << "ArtID: " << endl << artId << endl;
+
+					//Creating the directory and moving the file within
+					fs::create_directory(fileName);
+					fs::rename(p.path().string(), p.path().parent_path().string() + "\\" + fileName + "\\" + artId);
+				}
+			}
+		}
+	}
+
+	manFile.close();
 }
 
+//Function to add label at the end of file.
 void labeling(string cmd, string labelName, string maniFile) {
 	if (fs::exists(maniFile)) {
 		ofstream manfile(maniFile, std::ofstream::app | std::ofstream::out);
